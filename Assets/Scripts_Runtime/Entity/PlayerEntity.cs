@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace UnityServer {
 
@@ -7,6 +8,7 @@ namespace UnityServer {
         // public int onlyID;
         public int connID;
         public string username;
+        public Vector2 pos;
 
     }
 
