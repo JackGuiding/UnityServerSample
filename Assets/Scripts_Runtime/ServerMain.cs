@@ -39,7 +39,7 @@ namespace UnityServer {
                 PlayerDomain.OnData(ctx, clientID, data);
             };
             server.OnDisconnected = (int clientID) => {
-                Debug.Log("Disconnected: " + clientID);
+                PlayerDomain.OnClientDisconnected(ctx, clientID);
             };
 
             // - Listen

@@ -10,6 +10,10 @@ namespace UnityServer {
             Debug.Log("Connected: " + connID + ", " + str);
         }
 
+        public static void OnClientDisconnected(ServerContext ctx, int connID) {
+            ctx.playerRepository.RemovePlayerByConnID(connID);
+        }
+
         public static void OnData(ServerContext ctx, int connID, ArraySegment<byte> data) {
             // 3. 到底是什么类型的数据?
             int headerID = BitConverter.ToInt32(data.Array, 0);
@@ -57,6 +61,17 @@ namespace UnityServer {
                     broadcastMessage.pos = player.pos;
                     byte[] data2 = MessageHelper.BakeMessage(broadcastMessage);
                     ctx.server.Send(value.connID, data2);
+                });
+
+                // - Boradcast: 告诉新人, 其他人的坐标
+                ctx.playerRepository.Foreach(other => {
+                    if (other.connID != connID) {
+                        LoginBroadcastMessage broadcastMessage = new LoginBroadcastMessage();
+                        broadcastMessage.username = other.username;
+                        broadcastMessage.pos = other.pos;
+                        byte[] data2 = MessageHelper.BakeMessage(broadcastMessage);
+                        ctx.server.Send(connID, data2);
+                    }
                 });
             } else {
                 resMsg.status = 1;

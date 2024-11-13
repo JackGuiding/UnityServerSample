@@ -32,6 +32,13 @@ namespace UnityServer {
             allByUsername.Remove(player.username);
         }
 
+        public void RemovePlayerByConnID(int connID) {
+            bool has = allByConnID.TryGetValue(connID, out PlayerEntity player);
+            if (has) {
+                RemovePlayer(player);
+            }
+        }
+
         public PlayerEntity GetPlayerByConnID(int connID) {
             return allByConnID[connID];
         }
