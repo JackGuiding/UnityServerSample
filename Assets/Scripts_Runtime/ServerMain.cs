@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Telepathy;
+using UnityProtocol;
 
 namespace UnityServer {
 
@@ -27,13 +28,24 @@ namespace UnityServer {
                 Debug.Log("Connected: " + clientID + ", " + str);
             };
             server.OnData = (int clientID, ArraySegment<byte> data) => {
-                // 2. byte[] -> string(UTF8)
-                string str = System.Text.Encoding.UTF8.GetString(data.Array);
 
-                // 1. string -> struct HelloMessage
-                HelloMessage message = JsonUtility.FromJson<HelloMessage>(str);
-                Debug.Log("Received: " + message.myName + ", " + message.myAge + ", " + message.myData);
-                // server.Send(clientID, data);
+                // 3. 到底是什么类型的数据?
+                int headerID = BitConverter.ToInt32(data.Array, 0);
+
+                // 2. byte[] -> string(UTF8)
+                string str = System.Text.Encoding.UTF8.GetString(data.Array, 4, data.Count - 4);
+
+                if (headerID == 1) {
+                    // LoginMessage
+                    LoginMessage message = JsonUtility.FromJson<LoginMessage>(str);
+                    Debug.Log($"Received {headerID} Login: " + message.username);
+                } else if (headerID == 2) {
+                    // HelloMessage
+                    // 1. string -> struct HelloMessage
+                    HelloMessage message = JsonUtility.FromJson<HelloMessage>(str);
+                    Debug.Log($"Received {headerID} Hello: " + message.myName + ", " + message.myAge + ", " + message.myData);
+                }
+
             };
             server.OnDisconnected = (int clientID) => {
                 Debug.Log("Disconnected: " + clientID);

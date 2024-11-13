@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityServer {
+namespace UnityProtocol {
 
     public struct HelloMessage {
 
