@@ -27,8 +27,13 @@ namespace UnityServer {
                 Debug.Log("Connected: " + clientID + ", " + str);
             };
             server.OnData = (int clientID, ArraySegment<byte> data) => {
-                Debug.Log("Data: " + clientID + ", " + data.Count);
-                server.Send(clientID, data);
+                // 2. byte[] -> string(UTF8)
+                string str = System.Text.Encoding.UTF8.GetString(data.Array);
+
+                // 1. string -> struct HelloMessage
+                HelloMessage message = JsonUtility.FromJson<HelloMessage>(str);
+                Debug.Log("Received: " + message.myName + ", " + message.myAge + ", " + message.myData);
+                // server.Send(clientID, data);
             };
             server.OnDisconnected = (int clientID) => {
                 Debug.Log("Disconnected: " + clientID);
