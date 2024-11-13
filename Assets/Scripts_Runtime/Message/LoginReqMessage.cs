@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityProtocol {
 
-    public struct LoginMessage {
+    public struct LoginReqMessage {
 
         public string username;
 

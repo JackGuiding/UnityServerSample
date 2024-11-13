@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityProtocol {
 
-    public struct HelloMessage {
+    public struct HelloReqMessage {
 
         public string myName;
         public int myAge;

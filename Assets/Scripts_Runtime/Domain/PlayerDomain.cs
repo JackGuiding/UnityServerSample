@@ -17,24 +17,44 @@ namespace UnityServer {
             // 2. byte[] -> string(UTF8)
             string str = System.Text.Encoding.UTF8.GetString(data.Array, 4, data.Count - 4);
 
-            if (headerID == 1) {
+            if (headerID == MessageHelper.HEADER_LOGIN_REQ) {
                 // LoginMessage
-                LoginMessage message = JsonUtility.FromJson<LoginMessage>(str);
+                LoginReqMessage message = JsonUtility.FromJson<LoginReqMessage>(str);
                 OnPlayerLogin(ctx, connID, message);
-            } else if (headerID == 2) {
+            } else if (headerID == MessageHelper.HEADER_HELLO_REQ) {
                 // HelloMessage
                 // 1. string -> struct HelloMessage
-                HelloMessage message = JsonUtility.FromJson<HelloMessage>(str);
+                HelloReqMessage message = JsonUtility.FromJson<HelloReqMessage>(str);
                 OnHello(ctx, connID, message);
             }
         }
 
         #region Messages
-        static void OnPlayerLogin(ServerContext ctx, int connID, LoginMessage msg) {
-            Debug.Log($"Received Login: " + msg.username);
+        static void OnPlayerLogin(ServerContext ctx, int connID, LoginReqMessage msg) {
+
+            PlayerEntity player = new PlayerEntity();
+            // player.onlyID = idService.GetPlayerID();
+            player.connID = connID;
+            player.username = msg.username;
+
+            // Response
+            LoginResMessage resMsg = new LoginResMessage();
+
+            bool succ = ctx.playerRepository.AddPlayer(player);
+            if (succ) {
+                resMsg.status = 0;
+                byte[] data = MessageHelper.BakeMessage(resMsg);
+                ctx.server.Send(connID, data);
+                Debug.Log($"Player Login Succ: " + msg.username);
+            } else {
+                resMsg.status = 1;
+                byte[] data = MessageHelper.BakeMessage(resMsg);
+                ctx.server.Send(connID, data);
+                Debug.Log($"Player Login Failed Exist same user: " + msg.username);
+            }
         }
 
-        static void OnHello(ServerContext ctx, int connID, HelloMessage msg) {
+        static void OnHello(ServerContext ctx, int connID, HelloReqMessage msg) {
             Debug.Log($"Received Hello: " + msg.myName + ", " + msg.myAge + ", " + msg.myData);
         }
         #endregion

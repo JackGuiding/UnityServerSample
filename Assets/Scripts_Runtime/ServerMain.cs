@@ -50,6 +50,11 @@ namespace UnityServer {
 
         }
 
+        void OnGUI() {
+            // 在线人数
+            GUILayout.Label("Online Players: " + ctx.playerRepository.Count);
+        }
+
         void Update() {
             server.Tick(100);
         }

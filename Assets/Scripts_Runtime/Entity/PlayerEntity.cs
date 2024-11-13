@@ -4,8 +4,8 @@ namespace UnityServer {
 
     public class PlayerEntity {
 
-        public int onlyID;
-        public int clientID;
+        // public int onlyID;
+        public int connID;
         public string username;
 
     }
