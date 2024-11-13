@@ -9,6 +9,8 @@ namespace UnityServer {
 
     public class ServerMain : MonoBehaviour {
 
+        ServerContext ctx;
+
         Telepathy.Server server;
 
         bool isTearDown = false;
@@ -16,36 +18,25 @@ namespace UnityServer {
         void Start() {
 
             Application.runInBackground = true;
-
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 60;
 
+            // ==== Ctor ====
+            ctx = new ServerContext();
             int messageSize = 1024;
             server = new Server(messageSize);
 
+            // ==== Inject ====
+            ctx.Inject(server);
+
+            // ==== Init ====
+
             // - Binding Event
             server.OnConnected = (int clientID, string str) => {
-                Debug.Log("Connected: " + clientID + ", " + str);
+                PlayerDomain.OnClientConnected(ctx, clientID, str);
             };
             server.OnData = (int clientID, ArraySegment<byte> data) => {
-
-                // 3. 到底是什么类型的数据?
-                int headerID = BitConverter.ToInt32(data.Array, 0);
-
-                // 2. byte[] -> string(UTF8)
-                string str = System.Text.Encoding.UTF8.GetString(data.Array, 4, data.Count - 4);
-
-                if (headerID == 1) {
-                    // LoginMessage
-                    LoginMessage message = JsonUtility.FromJson<LoginMessage>(str);
-                    Debug.Log($"Received {headerID} Login: " + message.username);
-                } else if (headerID == 2) {
-                    // HelloMessage
-                    // 1. string -> struct HelloMessage
-                    HelloMessage message = JsonUtility.FromJson<HelloMessage>(str);
-                    Debug.Log($"Received {headerID} Hello: " + message.myName + ", " + message.myAge + ", " + message.myData);
-                }
-
+                PlayerDomain.OnData(ctx, clientID, data);
             };
             server.OnDisconnected = (int clientID) => {
                 Debug.Log("Disconnected: " + clientID);
