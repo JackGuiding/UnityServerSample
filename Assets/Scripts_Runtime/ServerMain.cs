@@ -10,8 +10,10 @@ namespace UnityServer {
 
         Telepathy.Server server;
 
+        bool isTearDown = false;
+
         void Start() {
-            
+
             Application.runInBackground = true;
 
             QualitySettings.vSyncCount = 0;
@@ -26,6 +28,7 @@ namespace UnityServer {
             };
             server.OnData = (int clientID, ArraySegment<byte> data) => {
                 Debug.Log("Data: " + clientID + ", " + data.Count);
+                server.Send(clientID, data);
             };
             server.OnDisconnected = (int clientID) => {
                 Debug.Log("Disconnected: " + clientID);
@@ -41,6 +44,24 @@ namespace UnityServer {
 
         void Update() {
             server.Tick(100);
+        }
+
+        void OnDestroy() {
+            OnTearDown();
+        }
+
+        void OnApplicationQuit() {
+            OnTearDown();
+        }
+
+        void OnTearDown() {
+            if (isTearDown) {
+                return;
+            }
+            isTearDown = true;
+
+            // 因为网络会启动一个线程
+            server.Stop();
         }
     }
 }
